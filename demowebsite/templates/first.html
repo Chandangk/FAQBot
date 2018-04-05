@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Initial</title>
+	<link rel="stylesheet" href="node_modules/primer-css/build/build.css">
+  <link rel="stylesheet" href="node_modules/octicons/build/font/octicons.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  {% load static %}
+  <style type="text/css">
+
+.se-pre-con {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: url("{% static 'loading.gif' %}") center no-repeat #fff;
+}
+	.markupTable{
+    text-align: center;
+    width: 100%
+  }
+  .markupTable td{
+   border: 1px solid #dddddd;
+   padding: 5px;
+  }
+.PageLayout{
+	margin-top:1.5%;
+	margin-left:1.5%;
+  margin-right: 1.5%;
+}
+.rootListItem{
+	margin-left: 1px;
+}
+.childListItem{
+  margin-left: 20px;
+}
+.score{
+  position: absolute;
+  right: 20px;
+}
+.score1{
+  position: absolute;
+  right: 20px;
+}
+.header{
+  width:100%;
+  height:15%;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+}
+.page-footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+}
+.freqListItem{
+    overflow: auto;
+    max-height: 400px;
+}
+.panel-group{
+  margin-bottom: 0px;
+}
+
+.freqListItem::-webkit-scrollbar {
+    width: 0.6em;
+}
+ 
+.freqListItem::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+ 
+.freqListItem::-webkit-scrollbar-thumb {
+  background-color: #337ab7;
+  border-radius: 10px;
+}
+/*.freqListItem::-webkit-scrollbar-button:vertical:decrement{
+  background-image: url("{% static 'arrow-up.png' %}"), -webkit-linear-gradient(left,  #f9f9f9 50%,#e2e2e2 100%) ;
+  background-repeat: no-repeat;
+    background-position: 3px 4px, 0 0;
+}
+.freqListItem::-webkit-scrollbar-button:vertical:increment{
+  background-image: url("{% static 'arrow-down.png' %}"), -webkit-linear-gradient(left,  #f9f9f9 50%,#e2e2e2 100%) ;
+  background-repeat: no-repeat;
+    background-position: 3px 5px, 0 0;
+}
+*/
+	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+  function preLoad() {
+    // Animate loader off screen
+    $(".se-pre-con").fadeOut("slow");
+  }
+function callToggleTree(spanID)
+ {
+  
+   $(document).ready(function(){
+     // var parent=document.getElementById(spanID).innerHTML;
+     var id='#'+spanID+'Ul';
+     // $(id).toggle();
+     $(id).slideToggle("slow");
+     var spanELement=document.getElementById(spanID).firstChild;
+     var gly='#'+spanELement;
+     $(spanELement).toggleClass("glyphicon-plus glyphicon-minus")
+    });
+   // var childListItem=document.getElementById(sibiling.id).children[2];
+   // $(childListItem).toggle();
+ }
+
+ function changeIcon(eleId){
+     var id='#'+eleId;
+     $(id).toggleClass("glyphicon-arrow-down glyphicon-arrow-up")
+  
+ }
+
+ function changeInnerIcon(eleId){
+    var child=document.getElementById(eleId).children[0].children[0].id;
+    changeIcon(child);
+ }
+ 
+ function changeBg(eleId){
+    document.getElementById(eleId).style.background="#337ab7";
+    document.getElementById(eleId).style.color="#FFFFFF";
+ }
+
+ function normal(eleId){
+    document.getElementById(eleId).style.background="#FFFFFF";
+    document.getElementById(eleId).style.color="#337ab7"; 
+ }
+
+  function callModal(textValue){
+  document.getElementById('modalDomain').innerHTML=textValue.id;
+  $("#myModal").modal();
+ }
+
+ function addService()
+ {
+  var domainName=document.getElementById('modalDomain').innerText;
+  var serviceUrl=document.getElementById('serviceUrl_fieldID').value;
+  var serviceName=document.getElementById('serviceName_fieldID').value;
+  if((serviceUrl != null) && (serviceName != null) ){
+   $.ajax({
+    type: 'GET',
+    url: 'insertService',
+    data: {"serviceUrl":serviceUrl,"serviceName":serviceName,"serviceUrl":serviceUrl,"domainName":domainName},
+    dataType: 'json',
+    cache: 'false',
+    success: function(json){
+      alert("inside ajax");
+      alert(json.result);
+      location.reload();
+    }
+   })
+  }
+ }
+
+	</script>
+  <!--style="background-color:#000000;color:#FFFFFF;"-->
+
+<body onload="preLoad()" style="background-color:#000000;color:#FFFFFF;">
+   <div class="se-pre-con"></div>
+  
+<div id="myModal" class="modal fade" role="dialog">
+  <div style="color:#000000;" class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Add your service</h4>
+      </div>
+      <div class="modal-body">
+      <form>
+        <div class="form-group">
+        <label class="control-label col-sm-5" >Domain Name Selected:</label>
+        <p class="col-sm-2" id="modalDomain"></p>
+        </div>
+        <div class="form-group formInputs">
+        <input class="form-control" type="text" name="serviceUrl_field" id="serviceUrl_fieldID" placeholder="Enter the url to crawl..." value="{{question}}"/>
+        </div>
+        <div class="form-group  formInputs">
+        <input class="form-control " type="text" name="serviceName_field" id="serviceName_fieldID" placeholder="Enter your service name.." value="{{question}}"/>
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="addService()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+ <div class="PageLayout">
+   <div class="header">
+    <h2>FAQ BOT</h2> 
+    <p><b>Finding difficulties in fetching meticulous response for specific service related queries?? We have developed a solution[FAQ bots] to produce the most accurate results. The BOT retorts with the precise results that helps the user for the query and also request them to rate the response to provide better results.</b> 
+    </p> 
+   </div>
+
+   <!--Left Column-->
+   <div class="treeView col-sm-2">
+    <h3>FAQ DOMAIN SET</h3>
+    <dl type="none" class="rootListItem">
+    {% for obj in domainObj %}
+     <dt>
+      <table class="markupTable">
+      <tr>
+      <td id="{{obj.domainName}}" onclick="callToggleTree(this.id)"><span class="glyphicon glyphicon-plus"></span></td>
+      <td id="openModal{{obj.domainName}}" onmouseenter="changeBg(this.id)" onmouseleave="normal(this.id)" onclick="callModal({{obj.domainName}})"><div>{{obj.domainName}}</div></td>
+      </tr>
+      </table>
+      </dt>
+            <div type="none" class="childListItem" id="{{obj.domainName}}Ul" name={{obj.domainName}}> 
+            {% for childObj in serviceObj %}
+            {% if childObj.domainID.domainName == obj.domainName %}
+            <dd><span class="glyphicon glyphicon-arrow-right"></span>&nbsp;&nbsp;<a target="_blank"href=execution?serviceName={{childObj.serviceName}}&serviceFilePath={{childObj.serviceFilePath}}><span style="color:#FFFFFF;">{{childObj.serviceName}}</span></a></dd>
+            {% endif %}
+            {% endfor %}
+            </div>            
+    {% endfor %}
+    </dl>
+  </div>
+
+<!--MainContent--> 
+  <div class="mainView col-sm-6">
+    {% load staticfiles %}
+  <div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <!-- Indicators -->
+    <ol class="carousel-indicators">
+      <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+      <li data-target="#myCarousel" data-slide-to="1"></li>
+      <li data-target="#myCarousel" data-slide-to="2"></li>
+    </ol>
+
+    <!-- Wrapper for slides -->
+    <div class="carousel-inner">
+      <div class="item active">
+        <img src="{% static "airplane.jpg" %}" alt="Los Angeles" style="width:100%;height:100%;">
+      </div>
+
+      <div class="item">
+        <img src="{% static "university1.jpg" %}" alt="Chicago" style="width:100%;height:100%;">
+      </div>
+    
+      <div class="item">
+        <img src="{% static "agriculture1.jpg" %}" alt="New york" style="width:100%;height:100%;">
+      </div>
+    </div>
+
+    <!-- Left and right controls -->
+    <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+      <span class="glyphicon glyphicon-chevron-left"></span>
+      <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#myCarousel" data-slide="next">
+      <span class="glyphicon glyphicon-chevron-right"></span>
+      <span class="sr-only">Next</span>
+    </a>
+  </div>
+
+
+  </div>
+
+  <!--RightMost Column-->
+<div class="frequentQuestion col-sm-3">
+  	<h4>Frequent Questions</h4>
+ <div class="freqListItem">
+ <div class=" myListPannel panel-group" >
+ <div class="panel panel-default">  
+ {% for freobj in frequentList %}    
+  <ul style="color:#000000;" class="list-group">
+    <li id="listEle{{forloop.counter}}" class="list-group-item d-flex justify-content-between align-items-center panel-heading" data-toggle="collapse" href="#collapse{{forloop.counter}}" onclick="changeInnerIcon(this.id)">
+       {{freobj.question}}<a id="a{{forloop.counter}}" class="score1" data-toggle="collapse" href="#collapse{{forloop.counter}}"><i id="{{forloop.counter}}"  class="glyphicon glyphicon-arrow-down"></i></a>
+       <div id="collapse{{forloop.counter}}" class="panel-collapse collapse">
+        <div style=";background-color:#e8ebef" class="panel-body">
+        <div class="score"><span class="badge badge-primary badge-pill">2</span></div>
+        <div style="color:337ab7">
+        {{freobj.answer}}
+        </div>
+        </div>
+      </div> 
+    </li>
+  </ul>
+  {% endfor %}
+ </div>
+ </div>
+ </div>
+</div>
+
+<!--Footer Class-->
+  <footer class="page-footer font-small stylish-color-dark pt-4 mt-4">
+     <!--Copyright-->
+    <div class="footer-copyright py-3 text-center">
+        © 2018 Copyright:&nbsp;&nbsp;A propduct by 
+        <p style="color:#337ab7;">Gajapathy Raj&nbsp;&&nbsp;Chandan G.K</p>
+    </div>
+    <!--/.Copyright-->
+   </footer>
+
+</div>
+</body>
+</html>

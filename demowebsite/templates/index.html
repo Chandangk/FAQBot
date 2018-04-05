@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  function onSubmitClick()
+  {
+   var oldId=document.getElementById("feed");
+      oldId.className= 'feedback';
+  }
+
+
+ function callModal(textValue){
+  document.getElementById('modalDomain').innerHTML=textValue.id;
+  $("#myModal").modal();
+ }
+
+ function addService()
+ {
+  var domainName=document.getElementById('modalDomain').innerText;
+  var serviceUrl=document.getElementById('serviceUrl_fieldID').value;
+  var serviceName=document.getElementById('serviceName_fieldID').value;
+  if((serviceUrl != null) && (serviceName != null) ){
+   $.ajax({
+    type: 'GET',
+    url: 'insertService',
+    data: {"serviceUrl":serviceUrl,"serviceName":serviceName,"serviceUrl":serviceUrl,"domainName":domainName},
+    dataType: 'json',
+    cache: 'false',
+    success: function(json){
+      alert("inside ajax");
+      alert(json.result);
+      location.reload();
+    }
+   })
+  }
+ }
+
+ function callToggleTree(spanID)
+ {
+  
+   $(document).ready(function(){
+     // var parent=document.getElementById(spanID).innerHTML;
+     var id='#'+spanID+'Ul';
+     $(id).toggle();
+   });
+   // var childListItem=document.getElementById(sibiling.id).children[2];
+   // $(childListItem).toggle();
+ }
+
+ $(document).ready(function(){
+  $('#myModal').on('hidden.bs.modal',function(){
+    $('#serviceUrl_fieldID').val("");
+    $('#serviceName_fieldID').val("");
+  });
+ });
+</script>
+<head>
+<style type="text/css">
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 18px;
+  }
+  #AskFAQForm{
+    margin-top: 50px;
+  }
+  #output{
+    margin-top: 25px;
+  }
+  #outputvis{
+    background-color: red;
+  }
+  #outputinv{
+    visibility:hidden;
+  }
+  .feedback{
+    margin-top: 20px;
+   display:block; 
+  }
+  .feedbackinv{
+   display:none;
+  }
+  .formInputs{
+    margin-top: 5px;
+  }
+  .domainHeader{
+    display: inline;
+  }
+</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+
+
+<div class="container">
+  <h2>Any Questions???</h2>
+  
+  <form method="POST" action="evaluation" id="AskFAQForm">
+    <div class="input-group">
+     {% csrf_token %}
+      <input type="text" class="form-control" name="question_field" id="question_fieldid" placeholder="Enter your question..." value="{{question}}">
+      <input type="hidden" name="filePath" value="{{filePathVal}}">
+      <input type="hidden" name="domainName" value="{{domainName}}">
+    <div class="input-group-btn">
+    <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+	</div>
+  <div id="output">
+    <textarea rows="12" class="form-control" name="answer_field">{{output_Value}}</textarea>
+    </div>
+  </form>
+  </div>
+
+  <div class="container">
+  <div class="feedbackinv" id="feed">
+  <h2>Help us serve better!!!</h2>
+  <p>Choose the option you are most satisfied with:</p>
+  <form method="POST" action="feedback">
+   {% csrf_token %}
+  <table class="table">
+  <tr>
+    <td><center><label class="radio-inline">
+      <input type="radio" id="1" name="optradio1">Option 1
+    </label></center></td>
+    <td><center><label class="radio-inline">
+      <input type="radio" id="2" name="optradi2">Option 2
+    </label></center></td>
+    <td><center><label class="radio-inline">
+      <input type="radio" id="3" name="optradio3">Option 3
+    </label></center></td>
+  </form>
+  </tr>
+  </table>
+  <center><button type="submit" class="btn btn-primary" >FeedBack</button></center>
+  </div>
+   
+  {% if radio_label != null %}   
+  <script type="text/javascript">alert('Thank you!! You selected option:{{radio_label}} ')</script>
+  {% endif %}
+
+  {% if output_Value != 'Not Found.' and output_Value != null %}
+  <script>onSubmitClick()</script>
+  {% endif %}
+  </div>
+  
+  <div class="treeView">
+    <ul type="none" class="rootListItem">
+    {% for obj in domainObj %}
+     <li>
+      <table>
+      <tr>
+      <td><span class="glyphicon glyphicon-plus" id="{{obj.domainName}}" onclick="callToggleTree(this.id)"></span></td>
+      <td><div  id="openModal" onclick="callModal({{obj.domainName}})">{{obj.domainName}}</div></td>
+      </tr>
+      </table>
+            <ul class="childListItem" id="{{obj.domainName}}Ul" name={{obj.domainName}}> 
+            {% for childObj in serviceObj %}
+            {% if childObj.domainID.domainName == obj.domainName %}
+            <li><a href=startPage?serviceName={{childObj.serviceName}}&serviceFilePath={{childObj.serviceFilePath}} >{{childObj.serviceName}}</a></li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+            </li>
+    {% endfor %}
+    </ul>
+  </div>
+
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Add your service</h4>
+      </div>
+      <div class="modal-body">
+      <form>
+        <div class="form-group">
+        <label class="control-label col-sm-5" >Domain Name Selected:</label>
+        <p class="col-sm-2" id="modalDomain"></p>
+        </div>
+        <div class="form-group formInputs">
+        <input class="form-control" type="text" name="serviceUrl_field" id="serviceUrl_fieldID" placeholder="Enter the url to crawl..." value="{{question}}"/>
+        </div>
+        <div class="form-group  formInputs">
+        <input class="form-control " type="text" name="serviceName_field" id="serviceName_fieldID" placeholder="Enter your service name.." value="{{question}}"/>
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="addService()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body> 
+</html>

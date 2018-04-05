@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Start Page</title>
+
+</head>
+	<script>
+       function startMyFunction(){
+        document.getElementById("display").innerHTML="Clicked";
+        for(var i =0;i<10;i++)
+        {
+        // document.getElementById("count").innerText=i;	
+        alert(i);
+        }
+        document.getElementById("display").innerHTML="Done!";      
+       }
+	</script>
+<body>
+<div class="startClass">
+<button id="btn" onclick="startMyFunction()">Click</button>
+<div id="display"></div>
+<p id="count"></p>
+</div>
+</body>
+</html>
