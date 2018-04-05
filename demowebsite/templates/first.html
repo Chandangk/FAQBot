@@ -280,7 +280,7 @@ function callToggleTree(spanID)
        {{freobj.question}}<a id="a{{forloop.counter}}" class="score1" data-toggle="collapse" href="#collapse{{forloop.counter}}"><i id="{{forloop.counter}}"  class="glyphicon glyphicon-arrow-down"></i></a>
        <div id="collapse{{forloop.counter}}" class="panel-collapse collapse">
         <div style=";background-color:#e8ebef" class="panel-body">
-        <div class="score"><span class="badge badge-primary badge-pill">2</span></div>
+        <div class="score"><span class="badge badge-primary badge-pill">{{freobj.pageRank}}</span></div>
         <div style="color:337ab7">
         {{freobj.answer}}
         </div>

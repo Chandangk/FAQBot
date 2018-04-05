@@ -120,20 +120,27 @@ td, th {
   <form method="POST" action="feedback">
    {% csrf_token %}
   <table class="table">
+    {% if QAPairs|length != 0 %}
+    {%for a in QAPairs %}
   <tr>
-    <td><center><label class="radio-inline">
-      <input type="radio" id="1" name="optradio1">Option 1
-    </label></center></td>
-    <td><center><label class="radio-inline">
-      <input type="radio" id="2" name="optradi2">Option 2
-    </label></center></td>
-    <td><center><label class="radio-inline">
-      <input type="radio" id="3" name="optradio3">Option 3
-    </label></center></td>
-  </form>
+    <td id="col1"><input type="radio" id="{{a.questionId}}" name="optradio{{forloop.counter}}"></td>
+  <td id="col2"><div id="display_answer">{{a.answer}}</div></td>
   </tr>
+  {% endfor %}
+  {% endif %}
+  <!--tr>
+    <td id="col1"><input type="radio" id="{{radio_2}}" name="optradio2"></td>
+  <td id="col2"><div id="display_answer"  >{{answer_2}}</div></td>
+  </tr>
+  <tr>
+    <td id="col1"><input  type="radio" id="{{radio_3}}" name="optradio3"></td>
+  <td id="col2"><div id="display_answer"  >{{answer_3}}</div></td>
+  </tr-->
+  <tr><td></td><td></td></tr>
   </table>
+  <input type="hidden" name="filePath" value="{{filePathVal}}">
   <center><button type="submit" class="btn btn-primary" >FeedBack</button></center>
+</form>
   </div>
    
   {% if radio_label != null %}   

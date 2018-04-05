@@ -1,21 +1,26 @@
 from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
-from itr import listitr
+from AskFAQApp.itr import listitr
 from AskFAQApp.models import DomainEntry,ServiceUrlMapping
+from AskFAQApp.main import *
 
-
+radioSelect=""
+radio_1=""
+radio_2=""
+radio_3=""
 #definig class for frequent questions
 class Freq:
 
-    def __init__(self,question,answer):
-        self.question=question
-        self.answer=answer
+	def __init__(self,question,answer,pageRank=0):
+		self.question=question
+		self.answer=answer
+		self.pageRank = pageRank
 
-    def display(self):
-        print("Question:"+self.question+" Answer:"+self.answer)
+	def display(self):
+		print("Question:"+self.question+" Answer:"+self.answer+"pageRank:"+self.pageRank)
 
-    def getQuestion(self):
-        return self.question
+	def getQuestion(self):
+		return self.question
 
 
 
@@ -38,55 +43,65 @@ def insertService(request,response):
 		serviceUrlGet=request.GET.get('serviceUrl')
 		serviceObject=ServiceUrlMapping()
 		filePath=serviceNameGet+".txt"
-		domainObject=DomainEntry.objects.get(domainName=domainNameGet)
-        serviceObject.domainID=domainObject
-        serviceObject.serviceName=serviceNameGet
-        serviceObject.serviceCrawlerUrl=serviceUrlGet
-        serviceObject.serviceFilePath=filePath
-        serviceObject.save()
-        result="Service saved successfully...."
-
-        return JsonResponse({"result":result})
+		status = createAndDownloadKB(serviceUrlGet,serviceNameGet,filePath)
+		if status == 0:
+			domainObject=DomainEntry.objects.get(domainName=domainNameGet)
+			serviceObject.domainID=domainObject
+			serviceObject.serviceName=serviceNameGet
+			serviceObject.serviceCrawlerUrl=serviceUrlGet
+			serviceObject.serviceFilePath=filePath
+			serviceObject.save()
+			result="Service saved successfully...."
+		else:
+			result="Problem in crawling..."
+		return JsonResponse({"result":result})
 
 def executor(request,response):
 	global output_Value,filePath,domainName
 	filePath=request.GET.get('serviceFilePath')
 	domainName=request.GET.get('serviceName')
+	print("executor called")
 	return render(request,'index.html',{"domainName":domainName,"filePathVal":filePath})
 
 def evaluation(request,response):
-	question=request.POST.get('question_field')
+	global radio_1,radio_2,radio_3
 	filePath=request.POST.get('filePath')
+	question=request.POST.get('question_field')
+	print("filepath is "+filePath)
 	domainName=request.POST.get('domainName')
-	output_value=listitr(question)
-	if output_value == "Not Found":
+	output_value = search(filePath,question)
+	print(output_value)
+	if len(output_value) == 0:
 		output_value+='.'+filePath+" "+domainName
-
-	return render(request,'index.html',{"output_Value":output_value,"question":question})
+	radio_1=output_value[0].questionId
+	radio_2=output_value[1].questionId
+	radio_3=output_value[2].questionId
+	return render(request,'index.html',{"QAPairs":output_value,"question":question,"filePathVal":filePath})
 
 def firstPage(request,response):
 	domainObjects=DomainEntry.objects.all()
 	serviceObjects=ServiceUrlMapping.objects.all()
-	FreqList= []
-	FreqList.append(Freq("My ticket was purchased from a travel agent. Can I change my itinerary on singaporeair.com?","No, only tickets purchased on singaporeair.com or from a local Singapore .")) 
-	FreqList.append(Freq("Am I eligible for online/mobile check-in?","Once you add someone"))
-	FreqList.append(Freq("Why does Singapore Airlines charge a fee for booking","Yes  you ective links for more information"))
-	FreqList.append(Freq("My ticket was purchased from a travel agent. Can I change my itinerary on singaporeair.com?","No, only tickets purchased on singaporeair.com or from a local Singapore .")) 
-	FreqList.append(Freq("Am I eligible for online/mobile check-in?","Once yo them for six months."))
-	FreqList.append(Freq("Why does Singapore Airlines charge a fee for bookings paid with credit cards?","Yes, you cann"))
+	FreqList = getPopularFAQ()
 	return render(request,'first.html',{"domainObj":domainObjects,"serviceObj":serviceObjects,"frequentList":FreqList})
 
 def feedback(request,response):
-	global selected_option1,selected_option2,selected_option3,radioSelect
-	selected_option1=request.POST.get('optradi1')
-	selected_option2=request.POST.get('optradi2')
-	selected_option3=request.POST.get('optradi3')
+	global selected_option1,selected_option2,selected_option3,radioSelect,radio_1,radio_2,radio_3
+	feedback_value =0
+	selected_option1=request.POST.get('optradio1')
+	selected_option2=request.POST.get('optradio2')
+	selected_option3=request.POST.get('optradio3')
+	file_path = request.POST.get('filePathVal')
+	print(selected_option1)
 	if(selected_option1 == 'on'):
 		radioSelect='1'
+		feedback_value = int(radio_1)
 	if(selected_option2 == 'on'):
 		radioSelect='2'
+		feedback_value = int(radio_2)
 	if(selected_option3 == 'on'):
 		radioSelect='3'
+		feedback_value =int(radio_3)
+	doReinforcement(feedback_value,file_path)
 	return render(request,"index.html",{"radio_label":radioSelect})
 
 

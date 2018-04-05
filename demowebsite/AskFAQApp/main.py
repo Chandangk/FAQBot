@@ -8,8 +8,24 @@ from nltk.corpus import wordnet
 from collections import defaultdict
 from itertools import islice
 import operator
+import urllib
+import io
+import requests
+import json
+import os
 
-FAQ_DATA_SET = 'AskFAQApp/data/dataset.txt'
+FAQ_DATA_SET = 'dataset.txt'
+faqTrainer = None
+DataSets = {}
+
+
+class FAQSet(object):
+	"""docstring for FAQSet"""             
+	def __init__(self, questionId,question,answer,pageRank=0):
+		self.questionId = questionId
+		self.question = question
+		self.answer = answer
+		self.pageRank = pageRank
 
 
 class Lemmatizer():
@@ -71,6 +87,7 @@ class DataTrainer(object):
 
 	def updateModel(self,index):
 		self.df.loc[index,'PageRank'] = self.df['PageRank'][index] + 1
+		print("Updated index: "+str(index))
 
 	def getLearningIndex(self,maxLength):
 		val = int(input('\n Are you satisfied with which answer?')) 
@@ -115,22 +132,150 @@ class DataTrainer(object):
 		return sorted(sum.items(), key=operator.itemgetter(1),reverse=isReverse)
 
 
-	def search(self,query):
+	def constrcutResult(self,rankDict,maxAnswers=3):
+		retVal = []
+		listQuestions = list(islice(rankDict,maxAnswers))
+		listQuestions.sort(key= lambda x: self.df['PageRank'][x[0]], reverse=True)
+		for i, question in enumerate(listQuestions):
+			index = question[0]
+			rank = rankDict[index]
+			if rank ==0:
+				break
+			faq = FAQSet(index,self.df['Question'][index],self.df['Answer'][index])
+			retVal.append(faq)
+		if i == 0:
+			print("Your Query doesn't match with any FAQ's. Try to contact our customer care")
+		return retVal
+
+
+
+	def searchInDB(self,query):
+		print("search called query is "+ query)
 		queries = []
 		queries.append(Lemmatizer.performLemmatization(query))
 		x1 = self.cv.fit_transform(queries)
 		words = self.cv.inverse_transform(x1)
 		sorted_ranks = self.calculateRankforQuery(words[0],True)
-		self.printDetails(sorted_ranks)
+		return self.constrcutResult(sorted_ranks)
 		
 
-faqTrainer = DataTrainer(FAQ_DATA_SET,'\t')
-faqTrainer.LoadDataSet()
-faqTrainer.applyLemma()
-faqTrainer.applyCV()
-for i in range(2):
-	query = input('\nEnter a query (dont use ? at the end): ')
-	faqTrainer.search(query)
+#def onLoad():
+##	faqTrainer = DataTrainer(FAQ_DATA_SET,'\t')
+#	faqTrainer.LoadDataSet()
+#	faqTrainer.applyLemma()
+#	faqTrainer.applyCV()
+
+
+def search(fileName,query):
+	global faqTrainer
+	print("search called with params "+ str(fileName) + str(query))
+	faqTrainer = getDataTrainer(fileName)
+	return faqTrainer.searchInDB(query)
+	
+def doReinforcement(index,fileName,sep='\t'):
+	global faqTrainer
+	if faqTrainer is None:
+		faqTrainer = getDataTrainer(fileName,sep)
+	print ("Index: " +str(index))
+	faqTrainer.updateModel(index)
+	setDataTrainer(fileName,faqTrainer)
+
+def setDataTrainer(fileName,faqTrainer):
+	global DataSets
+	DataSets[fileName] = faqTrainer
+
+def getDataTrainer(fileName,sep='\t'):
+	global DataSets
+	print("getDataTrainer called..")
+	if fileName not in DataSets:
+		dataSet = loadFromDisk(fileName,sep)
+		dataSet.applyLemma()
+		dataSet.applyCV()
+		DataSets[fileName] = dataSet
+	return DataSets[fileName]
+
+def loadFromDisk(fileName,sep='\t'):
+	print("loadFromDisk called "+ fileName)
+	dataSet = DataTrainer(fileName,sep)
+	dataSet.LoadDataSet()
+	return dataSet
+def getKBId(urlToRequest, nameOfTheApp):
+
+	if type(urlToRequest )is not list:
+		urlArray  = []
+		urlArray.append(urlToRequest)
+	else:
+		urlArray = urlToRequest
+
+
+	url = 'https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/create' 
+	data = {
+	"name" : nameOfTheApp,
+	"qnaPairs": [],
+	"urls": urlArray }
+	headers = {'Content-type': 'application/json', 'Ocp-Apim-Subscription-Key': 'b50bd4ee90ae4e6ca557930911b53ed2'}
+	r = requests.post(url, data=json.dumps(data), headers=headers)
+
+	response = r.json()
+	if(r.status_code == 201):
+		print(response)
+		return response['kbId']
+	return ""
+
+def download(kbId,fileName):
+		print("received kbId "+ kbId)
+		if(len(kbId) ==0):
+			print("invalid kbid received.."+kbId)
+			return -1
+		url = 'https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/%s' %kbId
+		headers = {'Ocp-Apim-Subscription-Key': 'b50bd4ee90ae4e6ca557930911b53ed2'}
+		r = requests.get(url, headers=headers)
+		print(r.content)
+	
+		s=requests.get(r.content[1:-1]).content
+		#print(s)
+		df=pd.read_csv(io.StringIO(s.decode('utf-8')),sep='\t')
+		df['Question_id'] = range(1, len(df) + 1)
+		df['PageRank'] =0
+		cols = ['Question_id','Question','Answer','PageRank','Source']
+		df = df[cols]
+		df.head()
+		df.to_csv(fileName, sep='\t', encoding='utf-8')
+		return 0
+
+def createAndDownloadKB(urlToRequest,nameOfTheApp,fileName):
+	print ("create and download kb called()...")
+	kbId = getKBId(urlToRequest,nameOfTheApp)
+	if len(kbId) <10:
+		return -1
+	else:
+		return download(kbId,fileName)
+
+def getPopularFAQ(maxCount = 10 ):
+	print("getPopularFAQ called")
+	popular_list = []
+	files = os.listdir()
+	files_txt = [i for i in files if i.endswith('.txt')]
+	print("No of files found "+ str(len(files_txt)))
+	data_frames = []
+	df =pd.DataFrame()
+	for file_name in files_txt:
+		faqTrainer = loadFromDisk(file_name)
+		df = df.append(faqTrainer.df)
+	df = df.sort_values(by=['PageRank'], ascending=False)
+	df2 = df.head(maxCount)
+	for index, row in df2.iterrows():
+		popular_list.append(FAQSet(index,row['Question'],row['Answer'],row['PageRank']))
+	return popular_list
+		
+
+
+
+
+
+
+
+
 
 
 
