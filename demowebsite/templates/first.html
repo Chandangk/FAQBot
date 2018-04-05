@@ -132,13 +132,16 @@ function callToggleTree(spanID)
  }
 
  function normal(eleId){
-    document.getElementById(eleId).style.background="#FFFFFF";
-    document.getElementById(eleId).style.color="#337ab7"; 
+    document.getElementById(eleId).style.background="#000000";
+    document.getElementById(eleId).style.color="#FFFFFF"; 
  }
 
   function callModal(textValue){
   document.getElementById('modalDomain').innerHTML=textValue.id;
-  $("#myModal").modal();
+  $("#myModal").modal({
+     backdrop: 'static',
+    keyboard: false
+  });
  }
 
  function addService()
@@ -147,6 +150,7 @@ function callToggleTree(spanID)
   var serviceUrl=document.getElementById('serviceUrl_fieldID').value;
   var serviceName=document.getElementById('serviceName_fieldID').value;
   if((serviceUrl != null) && (serviceName != null) ){
+    document.getElementById("loadGif").style.display="block";
    $.ajax({
     type: 'GET',
     url: 'insertService',
@@ -154,14 +158,26 @@ function callToggleTree(spanID)
     dataType: 'json',
     cache: 'false',
     success: function(json){
-      alert("inside ajax");
-      alert(json.result);
-      location.reload();
+      // alert("inside ajax");
+      document.getElementById('loadGif').innerHTML=json.result;
+     // document.getElementById("loadGif").style.display="none";
+      //alert(json.result);
+      // $("#myModal").modal("hide");
+      //location.reload();
     }
    })
   }
  }
 
+ function closeModal()
+ {
+  var serviceUrl=document.getElementById('serviceUrl_fieldID').value;
+  var serviceName=document.getElementById('serviceName_fieldID').value;
+  $("#myModal").modal("hide");
+  if((serviceUrl != null) && (serviceName != null) && (serviceUrl.length != 0) && (serviceName.length != 0)   ){
+    location.reload();
+  }
+ }
 	</script>
   <!--style="background-color:#000000;color:#FFFFFF;"-->
 
@@ -174,7 +190,9 @@ function callToggleTree(spanID)
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <!-- data-dismiss="modal" 
+      onclick="closeModal()-->
+        <button type="button" class="close" onclick="closeModal()">&times;</button>
         <h4 class="modal-title">Add your service</h4>
       </div>
       <div class="modal-body">
@@ -192,7 +210,8 @@ function callToggleTree(spanID)
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="addService()">Add</button>
+        <div id="loadGif" style="float:left;display:none;"><img src="{% static 'loadingsmall.gif' %}"></div>
+        <button type="button" class="btn btn-default" onclick="addService()">Add</button>
       </div>
     </div>
   </div>
@@ -214,7 +233,7 @@ function callToggleTree(spanID)
       <table class="markupTable">
       <tr>
       <td id="{{obj.domainName}}" onclick="callToggleTree(this.id)"><span class="glyphicon glyphicon-plus"></span></td>
-      <td id="openModal{{obj.domainName}}" onmouseenter="changeBg(this.id)" onmouseleave="normal(this.id)" onclick="callModal({{obj.domainName}})"><div>{{obj.domainName}}</div></td>
+      <td id="openModal{{obj.domainName}}" onmouseover="changeBg(this.id)" onmouseleave="normal(this.id)" onclick="callModal({{obj.domainName}})"><div>{{obj.domainName}}</div></td>
       </tr>
       </table>
       </dt>
@@ -278,7 +297,7 @@ function callToggleTree(spanID)
  {% for freobj in frequentList %}    
   <ul style="color:#000000;" class="list-group">
     <li id="listEle{{forloop.counter}}" class="list-group-item d-flex justify-content-between align-items-center panel-heading" data-toggle="collapse" href="#collapse{{forloop.counter}}" onclick="changeInnerIcon(this.id)">
-       {{freobj.question}}<a id="a{{forloop.counter}}" class="score1" data-toggle="collapse" href="#collapse{{forloop.counter}}"><i id="{{forloop.counter}}"  class="glyphicon glyphicon-arrow-down"></i></a>
+       {{freobj.question}}<a id="a{{forloop.counter}}" class="score1" data-toggle="collapse" href="#collapse{{forloop.counter}}"><i style="float:right;" id="{{forloop.counter}}"  class="glyphicon glyphicon-arrow-down"></i></a>
        <div id="collapse{{forloop.counter}}" class="panel-collapse collapse">
         <div style=";background-color:#e8ebef" class="panel-body">
         <div class="score"><span class="badge badge-primary badge-pill">{{freobj.pageRank}}</span></div>

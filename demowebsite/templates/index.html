@@ -35,7 +35,12 @@
    })
   }
  }
-
+ 
+ function changeClass()
+ {
+  document.getElementByClassName('feedbackinv').style.display="block";
+  alert("something wrong");
+ }
  function callToggleTree(spanID)
  {
   
@@ -79,7 +84,7 @@ td, th {
    display:block; 
   }
   .feedbackinv{
-   display:block; //check  whether needed or not
+   display:none; //check  whether needed or not
   }
   .formInputs{
     margin-top: 5px;
@@ -136,7 +141,6 @@ td, th {
     <td id="col1"><input  type="radio" id="{{radio_3}}" name="optradio3"></td>
   <td id="col2"><div id="display_answer"  >{{answer_3}}</div></td>
   </tr-->
-  <tr><td></td><td></td></tr>
   </table>
   <input type="hidden" name="filePath" value="{{filePathVal}}">
   <center><button type="submit" class="btn btn-primary" >FeedBack</button></center>
@@ -144,64 +148,13 @@ td, th {
   </div>
    
   {% if radio_label != null %}   
-  <script type="text/javascript">alert('Thank you!! You selected option:{{radio_label}} ')</script>
+  <script type="text/javascript">alert('Thank you!! You selected option:{{radio_label}} ')
+   window.location="/AskFAQApp/firstPage";
+  </script>
   {% endif %}
 
-  {% if output_Value != 'Not Found.' and output_Value != null %}
+  {% if question != 'Not Found.' and question != null %}
   <script>onSubmitClick()</script>
   {% endif %}
-  </div>
-  
-  <div class="treeView">
-    <ul type="none" class="rootListItem">
-    {% for obj in domainObj %}
-     <li>
-      <table>
-      <tr>
-      <td><span class="glyphicon glyphicon-plus" id="{{obj.domainName}}" onclick="callToggleTree(this.id)"></span></td>
-      <td><div  id="openModal" onclick="callModal({{obj.domainName}})">{{obj.domainName}}</div></td>
-      </tr>
-      </table>
-            <ul class="childListItem" id="{{obj.domainName}}Ul" name={{obj.domainName}}> 
-            {% for childObj in serviceObj %}
-            {% if childObj.domainID.domainName == obj.domainName %}
-            <li><a href=startPage?serviceName={{childObj.serviceName}}&serviceFilePath={{childObj.serviceFilePath}} >{{childObj.serviceName}}</a></li>
-            {% endif %}
-            {% endfor %}
-            </ul>
-            </li>
-    {% endfor %}
-    </ul>
-  </div>
-
-<div id="myModal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Add your service</h4>
-      </div>
-      <div class="modal-body">
-      <form>
-        <div class="form-group">
-        <label class="control-label col-sm-5" >Domain Name Selected:</label>
-        <p class="col-sm-2" id="modalDomain"></p>
-        </div>
-        <div class="form-group formInputs">
-        <input class="form-control" type="text" name="serviceUrl_field" id="serviceUrl_fieldID" placeholder="Enter the url to crawl..." value="{{question}}"/>
-        </div>
-        <div class="form-group  formInputs">
-        <input class="form-control " type="text" name="serviceName_field" id="serviceName_fieldID" placeholder="Enter your service name.." value="{{question}}"/>
-        </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="addService()">Add</button>
-      </div>
-    </div>
-  </div>
-</div>
 </body> 
 </html>
