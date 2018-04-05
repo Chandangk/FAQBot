@@ -121,5 +121,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = 'C:\Python27\UIProject\demowebsite\AskFAQApp\images'
-MEDIA_URL = '/images/'
+#MEDIA_ROOT = 'C:\Python27\UIProject\demowebsite\AskFAQApp\images'
+#MEDIA_URL = '/images/'

@@ -260,12 +260,13 @@ def getPopularFAQ(maxCount = 10 ):
 	data_frames = []
 	df =pd.DataFrame()
 	for file_name in files_txt:
-		faqTrainer = loadFromDisk(file_name)
+		faqTrainer = getDataTrainer(file_name)
 		df = df.append(faqTrainer.df)
-	df = df.sort_values(by=['PageRank'], ascending=False)
-	df2 = df.head(maxCount)
-	for index, row in df2.iterrows():
-		popular_list.append(FAQSet(index,row['Question'],row['Answer'],row['PageRank']))
+	if len(files_txt) != 0:
+		df = df.sort_values(by=['PageRank'], ascending=False)
+		df2 = df.head(maxCount)
+		for index, row in df2.iterrows():
+			popular_list.append(FAQSet(index,row['Question'],row['Answer'],row['PageRank']))
 	return popular_list
 		
 
