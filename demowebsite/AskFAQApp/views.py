@@ -53,7 +53,7 @@ def insertService(request,response):
 			serviceObject.save()
 			result="Service saved successfully...."
 		else:
-			result="Problem in crawling..."
+			result="Problem in crawling... Check the url provided!!"
 		return JsonResponse({"result":result})
 
 def executor(request,response):
@@ -85,24 +85,14 @@ def firstPage(request,response):
 	return render(request,'first.html',{"domainObj":domainObjects,"serviceObj":serviceObjects,"frequentList":FreqList})
 
 def feedback(request,response):
-	global selected_option1,selected_option2,selected_option3,radioSelect,radio_1,radio_2,radio_3
+	global select_option
 	feedback_value =0
-	selected_option1=request.POST.get('optradio1')
-	selected_option2=request.POST.get('optradio2')
-	selected_option3=request.POST.get('optradio3')
-	file_path = request.POST.get('filePathVal')
-	print(selected_option1)
-	if(selected_option1 == 'on'):
-		radioSelect='1'
-		feedback_value = int(radio_1)
-	if(selected_option2 == 'on'):
-		radioSelect='2'
-		feedback_value = int(radio_2)
-	if(selected_option3 == 'on'):
-		radioSelect='3'
-		feedback_value =int(radio_3)
+	select_option = request.GET.get('selectedValue')
+	file_path = request.GET.get('filePathVal')
+	feedback_value=int(select_option)
 	doReinforcement(feedback_value,file_path)
-	return render(request,"index.html",{"radio_label":radioSelect})
+	result="Success";
+	return JsonResponse({"result":result})
 
 
 def startPage(request,response):

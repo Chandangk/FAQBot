@@ -59,6 +59,31 @@
     $('#serviceName_fieldID').val("");
   });
  });
+
+ function feedbackCall(){
+  var filePath=document.getElementById('filePathHidden').value;
+  var count=$('#qaTable tr').length;
+  for(i=1;i<=count;i++)
+  {
+  	var id='row'+i;
+     if(document.getElementById(id).children[0].children[0].checked){
+     	var selected_radio=document.getElementById(id).children[0].children[0].id;
+        $.ajax({
+    	type: 'GET',
+    	url: 'feedback',
+	    data: {"selectedValue":selected_radio,"filePathVal":filePath},
+	    dataType: 'json',
+	    cache: 'false',
+	    success: function(json){
+	     alert('Thank you!! You selected option:'+i)
+	     window.location="/AskFAQApp/firstPage";
+	    }
+   	  })
+         break;
+     }
+    
+  }
+ }
 </script>
 <head>
 <style type="text/css">
@@ -122,36 +147,33 @@ td, th {
   <div class="feedbackinv" id="feed">
   <h2>Help us serve better!!!</h2>
   <p>Choose the option you are most satisfied with:</p>
-  <form method="POST" action="feedback">
+  <!-- method="POST" action="feedback" -->
+  <form>
    {% csrf_token %}
-  <table class="table">
+  <table class="table" id="qaTable">
     {% if QAPairs|length != 0 %}
     {%for a in QAPairs %}
-  <tr>
+  <!-- <tr>
     <td id="col1"><input type="radio" id="{{a.questionId}}" name="optradio{{forloop.counter}}"></td>
-  <td id="col2"><div id="display_answer">{{a.answer}}</div></td>
+    <td id="col2"><div id="display_answer">{{a.answer}}</div></td>
+  </tr> -->
+  <tr id="row{{forloop.counter}}">
+    <td id="col1"><input type="radio" id="{{a.questionId}}" name="radio"></td>
+    <td id="col2"><div id="display_answer">{{a.answer}}</div></td>
   </tr>
   {% endfor %}
   {% endif %}
-  <!--tr>
-    <td id="col1"><input type="radio" id="{{radio_2}}" name="optradio2"></td>
-  <td id="col2"><div id="display_answer"  >{{answer_2}}</div></td>
-  </tr>
-  <tr>
-    <td id="col1"><input  type="radio" id="{{radio_3}}" name="optradio3"></td>
-  <td id="col2"><div id="display_answer"  >{{answer_3}}</div></td>
-  </tr-->
   </table>
-  <input type="hidden" name="filePath" value="{{filePathVal}}">
-  <center><button type="submit" class="btn btn-primary" >FeedBack</button></center>
+  <input type="hidden" id="filePathHidden" name="filePath" value="{{filePathVal}}">
+  <center><button type="button" class="btn btn-primary" onclick="feedbackCall()">FeedBack</button></center>
 </form>
   </div>
    
-  {% if radio_label != null %}   
+ <!--  {% if radio_label != null %}   
   <script type="text/javascript">alert('Thank you!! You selected option:{{radio_label}} ')
    window.location="/AskFAQApp/firstPage";
   </script>
-  {% endif %}
+  {% endif %} -->
 
   {% if question != 'Not Found.' and question != null %}
   <script>onSubmitClick()</script>
